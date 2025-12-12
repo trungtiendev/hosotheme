@@ -1,0 +1,221 @@
+/*
+Theme Name: Ho So Luu - Hệ Thống Quản Lý Văn Bản
+Theme URI: https://trungtienlearn.com
+Author: Trung Tiến
+Author URI: https://trungtienlearn.com
+Description: Theme chuyên dụng được xây dựng từ đầu (Custom Theme) phục vụ quản lý văn bản điện tử và hồ sơ tự viện. Sử dụng Bootstrap 5, tối ưu hóa tốc độ tải trang, tích hợp tìm kiếm AJAX thông minh và giao diện Dashboard quản trị trực quan.
+Version: 1.0.0
+Requires at least: 6.0
+Requires PHP: 7.4
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: phatgiaotructuyen.com
+Tags: document-management, bootstrap-5, lightweight, custom-theme, fast-loading
+*/
+
+:root {
+    --primary-color: #003366; /* Xanh Navy chủ đạo */
+    --secondary-color: #ff9f43; /* Cam điểm nhấn */
+    --text-color: #333;
+    --bg-light: #f0f4f8;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--bg-light);
+    color: var(--text-color);
+}
+
+a { text-decoration: none; transition: 0.3s; }
+
+/* --- BOOTSTRAP OVERRIDES --- */
+.bg-primary-custom { background-color: var(--primary-color) !important; }
+.text-primary-custom { color: var(--primary-color) !important; }
+
+/* --- HEADER & FOOTER --- */
+.navbar-custom {
+    background-color: var(--primary-color);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.nav-link { color: rgba(255,255,255,0.9) !important; font-weight: 500; text-transform: uppercase; }
+.nav-link:hover { color: var(--secondary-color) !important; }
+
+#system-footer {
+    background-color: #002244;
+    color: #b0c4de;
+    border-top: 4px solid var(--secondary-color);
+    margin-top: 50px;
+}
+#system-footer a { color: #fff; }
+
+/* --- DASHBOARD CARDS --- */
+.stats-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    transition: transform 0.3s;
+    height: 100%;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+.stats-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+
+.stats-icon {
+    width: 50px; height: 50px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; margin-right: 15px; flex-shrink: 0;
+}
+.stats-info h3 { font-size: 13px; text-transform: uppercase; color: #777; margin: 0; }
+.stats-number { font-size: 24px; font-weight: bold; color: var(--primary-color); line-height: 1.2; }
+
+/* Màu sắc Card */
+.card-green .stats-icon { background: rgba(46, 204, 113, 0.15); color: #2ecc71; }
+.card-blue .stats-icon { background: rgba(52, 152, 219, 0.15); color: #3498db; }
+.card-orange .stats-icon { background: rgba(243, 156, 18, 0.15); color: #f39c12; }
+.card-purple .stats-icon { background: rgba(155, 89, 182, 0.15); color: #9b59b6; }
+
+/* --- LIST VIEW (Dùng chung cho dashboard & archive) --- */
+.pro-item {
+    display: flex; align-items: flex-start; padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+.item-date-box {
+    background: #fff; border: 1px solid #ddd; border-radius: 6px;
+    text-align: center; padding: 5px; min-width: 55px; margin-right: 15px;
+}
+.d-day { display: block; font-size: 18px; font-weight: bold; line-height: 1; }
+.d-month { font-size: 11px; text-transform: uppercase; }
+
+/* --- SELECT2 CUSTOM --- */
+.select2-container .select2-selection--single {
+    height: 38px !important;
+    border: 1px solid #dee2e6 !important;
+    padding-top: 5px;
+}
+/* --- PAGINATION STYLES --- */
+.page-numbers {
+    display: flex;
+    justify-content: center;
+    padding-left: 0;
+    list-style: none;
+    gap: 5px;
+}
+
+.page-numbers li span, 
+.page-numbers li a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%; /* Nút tròn */
+    border: 1px solid #dee2e6;
+    color: var(--primary-color);
+    background-color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+
+.page-numbers li a:hover {
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+}
+
+.page-numbers li span.current {
+    background-color: var(--primary-color);
+    color: #fff;
+    border-color: var(--primary-color);
+    cursor: default;
+}
+
+/* Hiệu ứng hover cho link bài viết */
+.hover-link:hover {
+    color: var(--secondary-color) !important;
+}
+
+/* =========================================
+   STYLE DANH SÁCH VĂN BẢN (LIST VIEW)
+   ========================================= */
+
+/* Item Container */
+.cv-item {
+    transition: background-color 0.2s ease;
+}
+.cv-item:hover {
+    background-color: #fafafa; /* Hiệu ứng hover nhẹ */
+}
+
+/* 1. Hộp ngày tháng (Date Box) */
+.cv-date-box {
+    width: 80px;      /* Độ rộng cố định */
+    padding: 10px 5px;
+    background-color: #f8f9fa; /* Màu nền xám nhạt */
+    /* border: 1px solid #e9ecef; Viền mờ nếu cần */
+    border-radius: 4px;
+    flex-shrink: 0;   /* Không bị co lại */
+}
+
+.cv-day {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary-color); /* Màu xanh chủ đạo */
+    line-height: 1;
+    margin-bottom: 2px;
+}
+
+.cv-month {
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+/* 2. Nội dung text */
+.hover-primary:hover {
+    color: var(--primary-color) !important;
+}
+
+.cv-excerpt {
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Giới hạn 2 dòng */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.5;
+}
+
+/* 3. Nút Xem chi tiết */
+.btn-outline-custom {
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    border-radius: 0; /* Vuông góc một chút như ảnh mẫu */
+    background: transparent;
+    white-space: nowrap; /* Không xuống dòng chữ */
+    transition: all 0.3s;
+}
+
+.btn-outline-custom:hover {
+    background-color: var(--primary-color);
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 51, 102, 0.2);
+}
+
+/* Responsive Mobile */
+@media (max-width: 576px) {
+    .cv-date-box {
+        width: 60px;
+        margin-right: 15px !important;
+    }
+    .cv-day { font-size: 18px; }
+    .cv-month { font-size: 10px; }
+    
+    /* Trên mobile, ẩn nút bên phải, làm cả khối thành link */
+    .cv-item { position: relative; }
+    .cv-content h5 a::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+    }
+}
