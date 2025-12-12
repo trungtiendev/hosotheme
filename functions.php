@@ -147,9 +147,6 @@ function search_pagodas_callback() {
 /**
  * B. NHÚNG SCRIPT & CẤU HÌNH GIAO DIỆN SELECT2 (CLIENT SIDE)
  */
-/**
- * B. NHÚNG SCRIPT & CẤU HÌNH GIAO DIỆN SELECT2 (CLIENT SIDE)
- */
 function load_pagoda_select2_assets() {
     global $pagenow;
     
@@ -397,7 +394,7 @@ function custom_verify_username_password( $user, $username, $password ) {
 add_filter( 'authenticate', 'custom_verify_username_password', 1, 3);
 
 /* =================================================================
-   BẢO MẬT: BẮT BUỘC ĐĂNG NHẬP (FORCE LOGIN) - BẢN FIX
+   BẢO MẬT: BẮT BUỘC ĐĂNG NHẬP (FORCE LOGIN)
    ================================================================= */
 function hosotheme_force_login() {
     // 1. Nếu đã đăng nhập rồi -> Cho qua
@@ -431,7 +428,7 @@ function hosotheme_redirect_after_login( $redirect_to, $request, $user ) {
     // Nếu là Admin thì vẫn cho vào trang quản trị
     if ( isset( $user->roles ) && is_array( $user->roles ) ) {
         if ( in_array( 'administrator', $user->roles ) ) {
-            return admin_url(); 
+            return home_url(); 
         }
     }
     // Nhân viên bình thường -> Về trang chủ Dashboard
