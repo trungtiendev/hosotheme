@@ -564,3 +564,56 @@ function hosotheme_auto_create_pages() {
 }
 // Hook chạy 1 lần duy nhất khi bấm nút "Kích hoạt" theme
 add_action( 'after_switch_theme', 'hosotheme_auto_create_pages' );
+
+/* =================================================================
+   TÙY CHỈNH GIAO DIỆN TRANG DANH SÁCH BÀI VIẾT (ADMIN)
+   ================================================================= */
+function custom_admin_post_list_styles() {
+    global $pagenow;
+    
+    // Chỉ chạy trên trang danh sách bài viết (edit.php)
+    if ( $pagenow == 'edit.php' ) {
+        echo '<style>
+            /* 1. Tăng độ rộng cột TIÊU ĐỀ (Quan trọng nhất) */
+            .wp-list-table .column-title {
+                width: 35% !important; /* Chiếm 35% chiều rộng bảng */
+                font-weight: 600;      /* Chữ đậm hơn chút */
+            }
+            .wp-list-table .column-title strong {
+                font-size: 14px;       /* Chữ to hơn cho dễ đọc */
+                color: #003366;        /* Màu xanh thương hiệu */
+            }
+
+            /* 2. Cột CHÙA / ĐƠN VỊ (Custom Column của chúng ta) */
+            .wp-list-table .column-related_pagoda {
+                width: 15% !important;
+            }
+
+            /* 3. Thu nhỏ các cột phụ để nhường chỗ */
+            .wp-list-table .column-author { width: 10% !important; }
+            .wp-list-table .column-categories { width: 10% !important; }
+            .wp-list-table .column-tags { width: 10% !important; }
+            
+            /* 4. Cột NGÀY THÁNG (Không cho xuống dòng) */
+            .wp-list-table .column-date {
+                width: 10% !important;
+                white-space: nowrap; 
+            }
+
+            /* 5. Tùy chỉnh hàng (Row) để dễ nhìn hơn */
+            .wp-list-table tbody tr:hover {
+                background-color: #f0f4f8 !important; /* Màu nền khi di chuột */
+            }
+            
+            /* Trạng thái bài viết (Đã đăng, Nháp...) */
+            .post-state {
+                background: #eee;
+                padding: 2px 8px;
+                border-radius: 4px;
+                font-size: 11px;
+                color: #555;
+            }
+        </style>';
+    }
+}
+add_action( 'admin_head', 'custom_admin_post_list_styles' );
