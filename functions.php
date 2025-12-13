@@ -433,7 +433,7 @@ function hosotheme_force_login() {
 
     // 2. Các trang "Công cộng" được phép truy cập khi chưa đăng nhập
     // (Bao gồm trang Đăng nhập và trang Quên mật khẩu)
-    if ( is_page('dang-nhap') || is_page('quen-mat-khau') ) {
+    if ( is_page('dang-nhap') || is_page('quen-mat-khau') || is_page('dang-ky') ) {
         return;
     }
 
@@ -623,3 +623,152 @@ function custom_admin_post_list_styles() {
     }
 }
 add_action( 'admin_head', 'custom_admin_post_list_styles' );
+
+/* =================================================================
+   1. CẤP QUYỀN QUẢN LÝ THÀNH VIÊN CHO AUTHOR & EDITOR
+   ================================================================= */
+function hosotheme_grant_user_caps() {
+    $roles = array('editor', 'author');
+    
+    foreach ($roles as $role_slug) {
+        $role = get_role($role_slug);
+        if ($role) {
+            // Cho phép xem danh sách và chỉnh sửa user
+            $role->add_cap('list_users');
+            $role->add_cap('edit_users');
+            $role->add_cap('promote_users'); // Để thay đổi vai trò
+            $role->add_cap('create_users');
+            $role->add_cap('delete_users');
+        }
+    }
+}
+add_action('init', 'hosotheme_grant_user_caps');
+
+// Ẩn người dùng Administrator khỏi danh sách đối với Author/Editor (Để bảo mật)
+function hosotheme_hide_admin_from_others($query) {
+    if ( !is_super_admin() && (current_user_can('editor') || current_user_can('author')) ) {
+        global $wpdb;
+        // Loại bỏ user có ID là 1 (Thường là Admin gốc) hoặc user có role administrator
+        $query->query_where .= " AND ID NOT IN (SELECT object_id FROM {$wpdb->term_relationships} WHERE term_taxonomy_id IN (SELECT term_taxonomy_id FROM {$wpdb->term_taxonomy} WHERE taxonomy = 'user_role' AND term_id IN (SELECT term_id FROM {$wpdb->terms} WHERE slug = 'administrator'))) ";
+    }
+}
+add_action('pre_user_query', 'hosotheme_hide_admin_from_others');
+
+/* =================================================================
+   2. CƠ CHẾ DUYỆT THÀNH VIÊN (APPROVE USER)
+   ================================================================= */
+
+// A. Khi đăng ký mới -> Gán trạng thái "pending" (Chờ duyệt)
+function hosotheme_set_user_pending($user_id) {
+    // Nếu người tạo không phải là admin/editor/author (tức là tự đăng ký ngoài frontend)
+    if ( !current_user_can('edit_users') ) {
+        update_user_meta($user_id, 'account_status', 'pending');
+    } else {
+        // Nếu do Admin tạo thì auto active
+        update_user_meta($user_id, 'account_status', 'active');
+    }
+}
+add_action('user_register', 'hosotheme_set_user_pending');
+
+// B. Chặn đăng nhập nếu chưa được duyệt
+function hosotheme_check_login_active($user, $username, $password) {
+    if ( is_wp_error($user) ) return $user;
+
+    $status = get_user_meta($user->ID, 'account_status', true);
+    
+    // Nếu trạng thái là pending -> Báo lỗi
+    if ( $status === 'pending' ) {
+        return new WP_Error( 'account_pending', '<strong>Thông báo:</strong> Tài khoản của bạn đang chờ Ban quản trị phê duyệt. Vui lòng quay lại sau.' );
+    }
+    return $user;
+}
+add_filter('authenticate', 'hosotheme_check_login_active', 100, 3);
+
+// C. Thêm cột "Trạng thái" vào bảng User trong Admin
+function hosotheme_add_user_columns($columns) {
+    $columns['user_status'] = 'Trạng thái';
+    return $columns;
+}
+add_filter('manage_users_columns', 'hosotheme_add_user_columns');
+
+// D. Hiển thị nút Duyệt trong cột
+function hosotheme_show_user_columns($value, $column_name, $user_id) {
+    if ( 'user_status' == $column_name ) {
+        $status = get_user_meta($user_id, 'account_status', true);
+        if ( $status === 'pending' ) {
+            $approve_link = add_query_arg(array('action' => 'approve_user', 'user' => $user_id), admin_url('users.php'));
+            return '<span style="color:red; font-weight:bold;">Chờ duyệt</span> <br> <a href="'.$approve_link.'" class="button button-small button-primary">Duyệt ngay</a>';
+        } else {
+            return '<span style="color:green; font-weight:bold;">Đã kích hoạt</span>';
+        }
+    }
+    return $value;
+}
+add_filter('manage_users_custom_column', 'hosotheme_show_user_columns', 10, 3);
+
+// E. Xử lý hành động khi bấm nút "Duyệt ngay"
+function hosotheme_process_approve_user() {
+    if ( isset($_GET['action']) && $_GET['action'] == 'approve_user' && isset($_GET['user']) ) {
+        if ( current_user_can('edit_users') ) {
+            $user_id = intval($_GET['user']);
+            update_user_meta($user_id, 'account_status', 'active');
+            wp_redirect(admin_url('users.php?approved=1'));
+            exit;
+        }
+    }
+}
+add_action('admin_init', 'hosotheme_process_approve_user');
+
+/* =================================================================
+   3. WIDGET KHÓA/MỞ ĐĂNG KÝ (CHO AUTHOR/EDITOR)
+   ================================================================= */
+
+// A. Tạo Widget trong Dashboard
+function hosotheme_register_toggle_widget() {
+    if ( current_user_can('edit_users') ) {
+        wp_add_dashboard_widget(
+            'hosotheme_reg_toggle',
+            '🔒 Quản lý Đăng Ký Thành Viên',
+            'hosotheme_reg_toggle_callback'
+        );
+    }
+}
+add_action('wp_dashboard_setup', 'hosotheme_register_toggle_widget');
+
+// B. Hiển thị nội dung Widget
+function hosotheme_reg_toggle_callback() {
+    // Xử lý lưu nếu có bấm nút
+    if ( isset($_POST['toggle_registration']) ) {
+        $current_val = get_option('users_can_register');
+        update_option('users_can_register', !$current_val); // Đảo ngược giá trị
+        echo '<div class="notice notice-success inline"><p>Đã cập nhật trạng thái!</p></div>';
+    }
+
+    $is_open = get_option('users_can_register');
+    ?>
+    <form method="post" style="text-align: center; padding: 20px;">
+        <p style="font-size: 16px;">
+            Trạng thái hiện tại: 
+            <strong>
+                <?php echo $is_open ? '<span style="color:green;">🟢 ĐANG MỞ</span>' : '<span style="color:red;">🔴 ĐANG KHÓA</span>'; ?>
+            </strong>
+        </p>
+        
+        <p style="color:#666;">
+            <?php echo $is_open ? 'Mọi người có thể đăng ký tài khoản mới.' : 'Chỉ có Admin/Tác giả mới có thể tạo tài khoản.'; ?>
+        </p>
+
+        <input type="hidden" name="toggle_registration" value="1">
+        
+        <?php if($is_open): ?>
+            <button type="submit" class="button button-primary button-hero" style="background:#d63638; border-color:#d63638;">
+                <span class="dashicons dashicons-lock"></span> KHÓA ĐĂNG KÝ
+            </button>
+        <?php else: ?>
+            <button type="submit" class="button button-primary button-hero" style="background:#00a32a; border-color:#00a32a;">
+                <span class="dashicons dashicons-unlock"></span> MỞ ĐĂNG KÝ
+            </button>
+        <?php endif; ?>
+    </form>
+    <?php
+}
