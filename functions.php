@@ -166,12 +166,41 @@ function load_pagoda_select2_assets() {
         $custom_js = "
         jQuery(document).ready(function($) {
             
+            // 1. Hàm tạo giao diện cho từng dòng kết quả (Dropdown)
+            function formatPagodaResult(repo) {
+                if (repo.loading) return repo.text;
+                
+                // Nếu là dòng thông báo 'Không tìm thấy'
+                if (!repo.permalink && !repo.address) return repo.text;
+
+                var markup = '<div class=\"d-flex flex-column\">';
+                markup += '<span class=\"fw-bold text-dark\">' + repo.text + '</span>';
+                
+                if(repo.address) {
+                    markup += '<small class=\"text-muted\" style=\"font-size:11px;\"><i class=\"fa-solid fa-location-dot me-1\"></i> ' + repo.address + '</small>';
+                }
+                
+                markup += '</div>';
+                return $(markup); // Trả về đối tượng jQuery để render HTML
+            }
+
+            // 2. Hàm hiển thị khi đã chọn xong (Input box)
+            function formatPagodaSelection(repo) {
+                return repo.text || repo.id;
+            }
+            
             // Cấu hình chung cho AJAX
             var select2Config = {
                 placeholder: 'Gõ tên Tự viện để tìm...',
                 allowClear: true,
                 width: '100%',
                 minimumInputLength: 2,
+                
+                // [MỚI] Kích hoạt chế độ render HTML
+                templateResult: formatPagodaResult, 
+                templateSelection: formatPagodaSelection,
+                escapeMarkup: function(m) { return m; }, // Cho phép in mã HTML ra màn hình
+
                 language: {
                     inputTooShort: function() { return 'Nhập ít nhất 2 ký tự...'; },
                     noResults: function() { return 'Không tìm thấy dữ liệu.'; },
