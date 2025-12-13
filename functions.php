@@ -528,6 +528,12 @@ function hosotheme_auto_create_pages() {
             'template' => 'front-page.php', // WordPress tự nhận file này là home
             'is_home'  => true // Đánh dấu đây là trang chủ
         ),
+        // 7. Trang Đăng Ký (MỚI)
+        array(
+            'title'    => 'Đăng ký thành viên',
+            'slug'     => 'dang-ky',
+            'template' => 'page-register.php',
+        ),
     );
 
     // Bắt đầu vòng lặp tạo trang

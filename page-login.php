@@ -162,7 +162,10 @@ if ( is_user_logged_in() ) {
                         <input class="form-check-input" type="checkbox" name="rememberme" id="rememberme" value="forever">
                         <label class="form-check-label small text-muted" for="rememberme">Ghi nhớ tôi</label>
                     </div>
-                    <a href="<?php echo wp_lostpassword_url(); ?>" class="small text-decoration-none text-primary-custom">Quên mật khẩu?</a>
+                    <div>
+                        <a href="<?php echo home_url('/dang-ky'); ?>" class="small text-decoration-none text-success me-3 fw-bold">Đăng ký mới</a>
+                        <a href="<?php echo wp_lostpassword_url(); ?>" class="small text-decoration-none text-primary-custom">Quên mật khẩu?</a>
+                    </div>
                 </div>
 
                 <button type="submit" name="wp-submit" id="wp-submit" class="btn btn-login shadow-sm">
